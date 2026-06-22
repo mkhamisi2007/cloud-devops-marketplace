@@ -8,19 +8,21 @@
 
 ## 🚀 Quick Start
 
-Install all three plugins with a few commands:
+Add the marketplace and install plugins with Claude Code commands:
 
 ```bash
-# Clone the marketplace
-git clone https://github.com/yourusername/cloud-devops-marketplace.git
-cd cloud-devops-marketplace
+# 1. Add the marketplace
+/plugin marketplace add mkhamisi2007/claude-plugins
 
-# Install plugins to your Claude Code directory
-cp -r plugins/terraform-standards ~/.claude/plugins/
-cp -r plugins/k8s-troubleshooter ~/.claude/plugins/
-cp -r plugins/aws-security-review ~/.claude/plugins/
+# 2. Install plugins as needed
+/plugin install terraform-standards@cloud-devops-marketplace
+/plugin install k8s-troubleshooter@cloud-devops-marketplace
+/plugin install aws-security-review@cloud-devops-marketplace
 
-# Restart Claude Code and you're ready to go!
+# 3. Verify installation
+/plugin list
+
+# That's it! You're ready to use the plugins.
 ```
 
 ---
@@ -106,57 +108,59 @@ cloud-devops-marketplace/
 
 ### Prerequisites
 
-- **Claude Code** (CLI or VS Code extension)
+- **Claude Code** (CLI or VS Code extension with plugin support)
   - Installation: https://claude.com/code
   - Verify: `claude code --version`
 
-- **Git** (2.0+)
-  - macOS: `brew install git`
-  - Linux: `sudo apt-get install git`
-  - Windows: https://git-scm.com/download/win
-
 - **Optional**: `kubectl` (for k8s-troubleshooter)
   - Installation: https://kubernetes.io/docs/tasks/tools/
+  - Only needed if using Kubernetes diagnostics plugin
 
 ### Installation Steps
 
-#### Step 1: Clone the Repository
+#### Step 1: Add the Marketplace
 
-```bash
-git clone https://github.com/yourusername/cloud-devops-marketplace.git
-cd cloud-devops-marketplace
+In your Claude Code environment, run:
+
 ```
+/plugin marketplace add mkhamisi2007/claude-plugins
+```
+
+This registers the Cloud DevOps Plugin Marketplace as a plugin source.
 
 #### Step 2: Install Desired Plugins
 
-You can install all plugins or just the ones you need:
+Install the plugins you need using the `/plugin install` command:
 
-```bash
-# Option A: Install all plugins
-cp -r plugins/terraform-standards ~/.claude/plugins/
-cp -r plugins/k8s-troubleshooter ~/.claude/plugins/
-cp -r plugins/aws-security-review ~/.claude/plugins/
+```
+# Install Terraform standards enforcement
+/plugin install terraform-standards@cloud-devops-marketplace
 
-# Option B: Install individual plugins
-cp -r plugins/terraform-standards ~/.claude/plugins/    # Terraform enforcement only
-cp -r plugins/k8s-troubleshooter ~/.claude/plugins/    # Kubernetes diagnostics only
-cp -r plugins/aws-security-review ~/.claude/plugins/   # AWS security review only
+# Install Kubernetes troubleshooter
+/plugin install k8s-troubleshooter@cloud-devops-marketplace
+
+# Install AWS security review
+/plugin install aws-security-review@cloud-devops-marketplace
 ```
 
-#### Step 3: Restart Claude Code
+You can install all three or just the ones you need—each plugin is completely independent.
 
-Quit and restart Claude Code to load the newly installed plugins.
+#### Step 3: Verify Installation
 
-#### Step 4: Verify Installation
+List all installed plugins to confirm:
 
-```bash
-# Check that plugins are installed
-ls ~/.claude/plugins/
+```
+/plugin list
+```
 
-# Should show:
-# terraform-standards
-# k8s-troubleshooter
-# aws-security-review
+You should see the installed plugins in the output.
+
+#### Step 4: Update the Marketplace (Optional)
+
+If you want to pull the latest plugin updates in the future:
+
+```
+/plugin marketplace update cloud-devops-marketplace
 ```
 
 ---
@@ -177,12 +181,12 @@ ls ~/.claude/plugins/
 
 #### Quick Start
 
-```bash
+```
 # 1. Install the plugin (see Installation Steps above)
+/plugin install terraform-standards@cloud-devops-marketplace
 
 # 2. Run checklist on your Terraform files
-cd /path/to/terraform/project
-claude code run terraform-standards pre-apply-checklist ./
+/plugin run terraform-standards pre-apply-checklist
 
 # 3. Fix any violations reported
 
@@ -193,9 +197,9 @@ git commit -m "Update infrastructure"
 #### Features
 
 **Pre-Apply Checklist Command**
-```bash
+```
 # Validate Terraform files before applying
-claude code run terraform-standards pre-apply-checklist ./terraform/
+/plugin run terraform-standards pre-apply-checklist
 
 # Output: Markdown report with violations (if any)
 # - Missing mandatory tags
@@ -203,13 +207,17 @@ claude code run terraform-standards pre-apply-checklist ./terraform/
 # - Missing encryption
 ```
 
-**Pre-Commit Hook** (optional setup)
-```bash
-# Install the git hook in your project
-cp plugins/terraform-standards/hooks/pre-commit .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
+**Pre-Commit Hook** (automatic)
+```
+# The terraform-standards plugin automatically blocks commits with hardcoded credentials
+# When you try to commit, the hook validates your changes:
 
-# Now commits with hardcoded credentials are blocked automatically
+git commit -m "Update infrastructure"
+# [terraform-standards] ✅ No credentials detected. Commit allowed.
+# OR
+# [terraform-standards] ❌ Credentials detected in staged files
+# File: main.tf, Line 5: access_key = "AKIAIOSFODNN7EXAMPLE"
+# Recovery: Remove credentials and use environment variables instead.
 ```
 
 #### Examples
@@ -238,43 +246,45 @@ Full details: `plugins/terraform-standards/README.md`
 
 #### Quick Start
 
-```bash
+```
 # 1. Install the plugin
+/plugin install k8s-troubleshooter@cloud-devops-marketplace
 
-# 2. Diagnose pod failures (interactive agent)
-kubectl describe pods | claude code run k8s-troubleshooter k8s-diagnosis
+# 2. Diagnose pod failures
+/plugin run k8s-troubleshooter k8s-diagnosis
 
+# Paste or provide kubectl output when prompted
 # Output: Diagnostic suggestions with remediation steps
 
-# 3. Validate a manifest (skill)
-claude code run k8s-troubleshooter manifest-validator deployment.yaml
+# 3. Validate a manifest
+/plugin run k8s-troubleshooter manifest-validator
 
+# Provide your deployment.yaml when prompted
 # Output: Report on missing health probes, resource limits, etc.
 ```
 
 #### Features
 
 **Pod Diagnosis Agent** - Diagnose pod failures interactively
-```bash
-# Get kubectl output for pods
-kubectl describe pods --all-namespaces > pods.txt
+```
+/plugin run k8s-troubleshooter k8s-diagnosis
 
-# Get diagnostics
-cat pods.txt | claude code run k8s-troubleshooter k8s-diagnosis
+# Provide kubectl output when prompted:
+# kubectl describe pods --all-namespaces
 
-# Suggestions for:
+# Get suggestions for:
 # - CrashLoopBackOff: Check health probes, environment, startup logs
 # - Pending: Check resources available, node affinity, PVC status
 # - OOMKilled: Increase memory limits
 ```
 
 **Manifest Validator Skill** - Validate manifests before deployment
-```bash
-# Validate a single manifest
-claude code run k8s-troubleshooter manifest-validator deployment.yaml
+```
+/plugin run k8s-troubleshooter manifest-validator
 
+# Provide your Kubernetes manifest when prompted
 # Validates:
-# - Resource requests/limits present
+# - Resource requests/limits present on all containers
 # - Liveness and readiness probes configured
 # - Images use specific version tags (no "latest")
 ```
@@ -306,26 +316,30 @@ Full details: `plugins/k8s-troubleshooter/README.md`
 
 #### Quick Start
 
-```bash
+```
 # 1. Install the plugin
+/plugin install aws-security-review@cloud-devops-marketplace
 
 # 2. Review an IAM policy
-claude code run aws-security-review iam-policy-reviewer policy.json
+/plugin run aws-security-review iam-policy-reviewer
 
+# Provide your IAM policy JSON when prompted
 # Output: Flags overly permissive patterns, suggests fixes
 
-# 3. Review S3 bucket configuration
-claude code run aws-security-review iam-policy-reviewer bucket-policy.json
+# 3. Review S3 bucket or security group configuration
+/plugin run aws-security-review iam-policy-reviewer
 
-# Output: Flags public access, suggests restrictions
+# Provide your S3 bucket policy or security group JSON
+# Output: Flags security issues and suggests restrictions
 ```
 
 #### Features
 
 **IAM Policy Review**
-```bash
-# Review an IAM policy for overly permissive patterns
-claude code run aws-security-review iam-policy-reviewer iam-policy.json
+```
+/plugin run aws-security-review iam-policy-reviewer
+
+# Provide your IAM policy JSON
 
 # Flags:
 # - Action: "*" without scope → Suggest specific actions
@@ -334,9 +348,10 @@ claude code run aws-security-review iam-policy-reviewer iam-policy.json
 ```
 
 **S3 Bucket Configuration Review**
-```bash
-# Review S3 bucket policy
-claude code run aws-security-review iam-policy-reviewer bucket-policy.json
+```
+/plugin run aws-security-review iam-policy-reviewer
+
+# Provide your S3 bucket policy JSON
 
 # Flags:
 # - Public read access (Principal: "*")
@@ -345,9 +360,10 @@ claude code run aws-security-review iam-policy-reviewer bucket-policy.json
 ```
 
 **Security Group Review**
-```bash
-# Review security group configuration
-claude code run aws-security-review iam-policy-reviewer security-group.json
+```
+/plugin run aws-security-review iam-policy-reviewer
+
+# Provide your security group configuration JSON
 
 # Flags:
 # - SSH (port 22) from 0.0.0.0/0
@@ -373,32 +389,32 @@ Full details: `plugins/aws-security-review/README.md`
 
 ### Workflow 1: Pre-Deployment Infrastructure Validation
 
-```bash
+```
 # 1. Validate Terraform configuration
-cd terraform/
-claude code run terraform-standards pre-apply-checklist ./
+/plugin run terraform-standards pre-apply-checklist
+# Provide your Terraform files when prompted
 
 # 2. Fix any violations
 # 3. Apply Terraform
 terraform apply
 
 # 4. Validate resulting Kubernetes manifests
-cd ../kubernetes/
-claude code run k8s-troubleshooter manifest-validator deployment.yaml
+/plugin run k8s-troubleshooter manifest-validator
+# Provide your deployment.yaml when prompted
 
 # 5. Review IAM policies for security
-cd ../iam/
-claude code run aws-security-review iam-policy-reviewer service-role-policy.json
+/plugin run aws-security-review iam-policy-reviewer
+# Provide your IAM policy JSON when prompted
 
 # 6. Deploy with confidence!
 ```
 
 ### Workflow 2: Production Troubleshooting
 
-```bash
+```
 # Pod is misbehaving? Get instant diagnostics
-kubectl describe pods --all-namespaces | \
-  claude code run k8s-troubleshooter k8s-diagnosis
+/plugin run k8s-troubleshooter k8s-diagnosis
+# Paste kubectl describe pods output when prompted
 
 # Output gives you:
 # - Root cause analysis
@@ -410,13 +426,14 @@ kubectl describe pods --all-namespaces | \
 
 ### Workflow 3: Security Audit
 
-```bash
+```
 # Export current AWS configuration
 aws iam get-role-policy --role-name MyRole --policy-name MyPolicy \
   --query 'RolePolicyDocument' > policy.json
 
 # Review for security issues
-claude code run aws-security-review iam-policy-reviewer policy.json
+/plugin run aws-security-review iam-policy-reviewer
+# Provide your policy.json when prompted
 
 # Get compliance report with fixes
 ```
@@ -439,41 +456,42 @@ claude code run aws-security-review iam-policy-reviewer policy.json
 
 ## 🆘 Troubleshooting
 
-### Plugin Not Found
+### Plugin Not Found in /plugin list
 
-```bash
+```
+# Verify marketplace is added
+/plugin marketplace list
+
+# If cloud-devops-marketplace is missing, add it:
+/plugin marketplace add mkhamisi2007/claude-plugins
+
 # Verify plugin is installed
-ls ~/.claude/plugins/terraform-standards/
-
-# If missing, reinstall:
-cp -r plugins/terraform-standards ~/.claude/plugins/
-
-# Restart Claude Code
+/plugin list
 ```
 
-### Command Not Recognized
+### Plugin Command Not Recognized
 
-```bash
-# Verify plugin.json exists and has correct entrypoints
-cat ~/.claude/plugins/terraform-standards/.claude-plugin/plugin.json
+```
+# Verify plugin is installed
+/plugin list
 
-# Restart Claude Code if you just installed the plugin
+# If not listed, install it:
+/plugin install terraform-standards@cloud-devops-marketplace
+
+# After installing, try running the plugin:
+/plugin run terraform-standards pre-apply-checklist
 ```
 
-### Git Hook Not Working
+### Update Plugin Marketplace
 
-```bash
-# Verify hook is installed and executable
-ls -la .git/hooks/pre-commit
+```
+# Get latest versions of all plugins
+/plugin marketplace update cloud-devops-marketplace
 
-# Make executable if needed
-chmod +x .git/hooks/pre-commit
-
-# Test hook manually
-./.git/hooks/pre-commit
+# This fetches the newest plugin versions from the marketplace
 ```
 
-### kubectl Connection Fails
+### kubectl Connection Fails (k8s-troubleshooter)
 
 ```bash
 # Verify kubectl is installed
@@ -486,7 +504,17 @@ kubectl cluster-info
 echo $KUBECONFIG
 ```
 
-For more help, see individual plugin README files or **SETUP.md** for comprehensive troubleshooting.
+### Plugin Execution Issues
+
+```
+# If a plugin fails to run, check:
+1. Plugin is installed: /plugin list
+2. Marketplace is up to date: /plugin marketplace update cloud-devops-marketplace
+3. You have valid input to provide (policy JSON, Terraform files, kubectl output)
+4. Your Claude Code environment is recent enough to support plugins
+```
+
+For more help, see individual plugin README files in `plugins/*/README.md` or **SETUP.md** for comprehensive troubleshooting.
 
 ---
 
