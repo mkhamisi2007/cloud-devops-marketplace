@@ -1,0 +1,12 @@
+{
+  "id": "aws-security-review",
+  "name": "AWS Security Review",
+  "description": "Flag overly permissive IAM policies, public S3 buckets, and unrestricted security groups",
+  "version": "1.0.0",
+  "author": "DevOps Team",
+  "entrypoints": {
+    "skills": [
+      "iam-policy-reviewer"
+    ]
+  }
+}
