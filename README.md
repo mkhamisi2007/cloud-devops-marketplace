@@ -12,7 +12,7 @@ Add the marketplace and install plugins with Claude Code commands:
 
 ```bash
 # 1. Add the marketplace
-/plugin marketplace add mkhamisi2007/claude-plugins
+/plugin marketplace add mkhamisi2007/cloud-devops-marketplace
 
 # 2. Install plugins as needed
 /plugin install terraform-standards@cloud-devops-marketplace
@@ -123,7 +123,7 @@ cloud-devops-marketplace/
 In your Claude Code environment, run:
 
 ```
-/plugin marketplace add mkhamisi2007/claude-plugins
+/plugin marketplace add mkhamisi2007/cloud-devops-marketplace
 ```
 
 This registers the Cloud DevOps Plugin Marketplace as a plugin source.
@@ -463,7 +463,7 @@ aws iam get-role-policy --role-name MyRole --policy-name MyPolicy \
 /plugin marketplace list
 
 # If cloud-devops-marketplace is missing, add it:
-/plugin marketplace add mkhamisi2007/claude-plugins
+/plugin marketplace add mkhamisi2007/cloud-devops-marketplace
 
 # Verify plugin is installed
 /plugin list
