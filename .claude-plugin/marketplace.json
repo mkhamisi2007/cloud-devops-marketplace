@@ -2,7 +2,10 @@
   "name": "cloud-devops-marketplace",
   "description": "Private marketplace for DevOps plugins enforcing infrastructure standards and enabling diagnostics",
   "version": "1.0.0",
-  "author": "DevOps Team",
+  "owner": {
+    "name": "DevOps Team",
+    "url": "https://github.com/mkhamisi2007/cloud-devops-marketplace"
+  },
   "created": "2026-06-22",
   "updated": "2026-06-22",
   "plugins": [
