@@ -1,9 +1,11 @@
 {
   "id": "terraform-standards",
-  "name": "Terraform Standards",
+  "name": "terraform-standards",
   "description": "Enforce tagging, naming conventions, and encryption in Terraform code with pre-apply checklist and commit-blocking hook",
   "version": "1.0.0",
-  "author": "DevOps Team",
+  "author": {
+    "name": "DevOps Team"
+  },
   "entrypoints": {
     "commands": [
       "pre-apply-checklist"

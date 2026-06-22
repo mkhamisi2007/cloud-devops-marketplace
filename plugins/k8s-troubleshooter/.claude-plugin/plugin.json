@@ -1,9 +1,11 @@
 {
   "id": "k8s-troubleshooter",
-  "name": "Kubernetes Troubleshooter",
+  "name": "k8s-troubleshooter",
   "description": "Diagnose Kubernetes pod failures and validate manifest best practices (CKA standards)",
   "version": "1.0.0",
-  "author": "DevOps Team",
+  "author": {
+    "name": "DevOps Team"
+  },
   "entrypoints": {
     "agents": [
       "k8s-diagnosis"
