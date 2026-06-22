@@ -15,7 +15,7 @@
       "description": "Enforce tagging, naming conventions, and encryption in Terraform code with pre-apply checklist and commit-blocking hook",
       "version": "1.0.0",
       "author": "DevOps Team",
-      "path": "plugins/terraform-standards",
+      "url": "https://github.com/mkhamisi2007/cloud-devops-marketplace/tree/master/plugins/terraform-standards",
       "entrypoints": {
         "commands": [
           "pre-apply-checklist"
@@ -40,7 +40,7 @@
       "description": "Diagnose Kubernetes pod failures and validate manifest best practices (CKA standards)",
       "version": "1.0.0",
       "author": "DevOps Team",
-      "path": "plugins/k8s-troubleshooter",
+      "url": "https://github.com/mkhamisi2007/cloud-devops-marketplace/tree/master/plugins/k8s-troubleshooter",
       "entrypoints": {
         "agents": [
           "k8s-diagnosis"
@@ -65,7 +65,7 @@
       "description": "Flag overly permissive IAM policies, public S3 buckets, and unrestricted security groups",
       "version": "1.0.0",
       "author": "DevOps Team",
-      "path": "plugins/aws-security-review",
+      "url": "https://github.com/mkhamisi2007/cloud-devops-marketplace/tree/master/plugins/aws-security-review",
       "entrypoints": {
         "skills": [
           "iam-policy-reviewer"
