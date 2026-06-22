@@ -1,0 +1,54 @@
+this is my notes
+-----------------------
+specify init --here --integration claude
+claude --permission-mode bypassPermissions
+------------------------------speckit-constitution-----------------------------------
+/speckit-constitution
+This project builds a private Claude Code plugin marketplace for a
+DevOps team. Non-negotiable principles:
+- Every plugin must be installable independently
+- All Skills, Commands, and Agents must be documented in English
+- Hooks must never silently fail; they must log a clear reason
+  when blocking an action
+- All Terraform-related rules must follow AWS Well-Architected
+  security pillar
+- All Kubernetes-related rules must follow CKA exam best practices
+- Final documentation (README) must be written in English
+-----------------------------speckit-specify------------------------------------
+/speckit-specify
+Build a private Claude Code plugin marketplace named
+"cloud-devops-marketplace" containing three plugins:
+
+1. terraform-standards: enforces tagging rules (Environment and
+   Owner mandatory), kebab-case naming, and mandatory encryption
+   on storage resources. Includes a command to run a pre-apply
+   checklist, and a hook that blocks commits containing hardcoded
+   credentials in .tf files.
+
+2. k8s-troubleshooter: a specialized agent for diagnosing
+   CrashLoopBackOff, pending pods, and OOMKilled events from
+   kubectl output. Includes a skill enforcing manifest best
+   practices (resource requests/limits and health probes
+   mandatory on every Deployment).
+
+3. aws-security-review: a skill that flags overly permissive IAM
+   policies, public S3 buckets, and security groups open to
+   0.0.0.0/0 on ports other than 80/443.
+
+Focus on what each plugin should do and why, not on file formats
+or implementation details yet.
+
+------------------------------speckit-clarify-------------------------------
+/speckit-clarify
+-----------------------------speckit-plan-----------------------------------
+/speckit-plan
+Use the standard Claude Code plugin structure:
+.claude-plugin/marketplace.json at the repository root, and each
+plugin under plugins// with its own .claude-plugin/plugin.json.
+Skills go under skills//SKILL.md, commands under
+commands/, agents under agents/, and hooks under hooks/hooks.json.
+No external dependencies beyond what Claude Code natively supports.
+----------------------------------------------------------------
+/speckit-tasks
+/speckit-analyze
+/speckit-implement
