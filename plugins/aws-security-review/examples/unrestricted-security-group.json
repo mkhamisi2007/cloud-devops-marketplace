@@ -1,0 +1,40 @@
+{
+  "GroupId": "sg-database-prod",
+  "GroupName": "database-prod",
+  "Description": "Production database security group",
+  "IpPermissions": [
+    {
+      "FromPort": 3306,
+      "ToPort": 3306,
+      "IpProtocol": "tcp",
+      "IpRanges": [
+        {
+          "CidrIp": "0.0.0.0/0",
+          "Description": "MySQL - INSECURE: Open to internet"
+        }
+      ]
+    },
+    {
+      "FromPort": 22,
+      "ToPort": 22,
+      "IpProtocol": "tcp",
+      "IpRanges": [
+        {
+          "CidrIp": "0.0.0.0/0",
+          "Description": "SSH - INSECURE: Open to internet"
+        }
+      ]
+    },
+    {
+      "FromPort": 3389,
+      "ToPort": 3389,
+      "IpProtocol": "tcp",
+      "IpRanges": [
+        {
+          "CidrIp": "0.0.0.0/0",
+          "Description": "RDP - INSECURE: Open to internet"
+        }
+      ]
+    }
+  ]
+}

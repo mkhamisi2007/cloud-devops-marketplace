@@ -1,0 +1,29 @@
+{
+  "GroupId": "sg-database-prod",
+  "GroupName": "database-prod",
+  "Description": "Production database security group - restricted to app tier only",
+  "IpPermissions": [
+    {
+      "FromPort": 3306,
+      "ToPort": 3306,
+      "IpProtocol": "tcp",
+      "UserIdGroupPairs": [
+        {
+          "GroupId": "sg-app-tier",
+          "Description": "Application tier access only"
+        }
+      ]
+    },
+    {
+      "FromPort": 22,
+      "ToPort": 22,
+      "IpProtocol": "tcp",
+      "IpRanges": [
+        {
+          "CidrIp": "10.0.1.0/24",
+          "Description": "SSH from bastion host subnet only"
+        }
+      ]
+    }
+  ]
+}

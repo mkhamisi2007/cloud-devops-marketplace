@@ -1,0 +1,267 @@
+# ✅ VALID: Production-ready Deployment following all CKA best practices
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server
+  namespace: production
+  labels:
+    app: api-server
+    version: v1
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: api-server
+  template:
+    metadata:
+      labels:
+        app: api-server
+        version: v1
+    spec:
+      # ✅ Service account with minimal permissions
+      serviceAccountName: api-server-minimal
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      containers:
+      - name: api
+        # ✅ Image with specific version tag (not "latest")
+        image: myregistry.azurecr.io/api-server:1.0.0-sha256-abc123def456
+        imagePullPolicy: IfNotPresent
+
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+
+        # ✅ Resource requests for scheduler; limits for containment
+        resources:
+          requests:
+            cpu: "100m"           # App needs ~50m on average
+            memory: "128Mi"       # App needs ~100Mi on average
+          limits:
+            cpu: "500m"           # Max allowed
+            memory: "256Mi"       # Max allowed
+
+        # ✅ Liveness probe to restart unhealthy containers
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 15    # Wait for app startup
+          periodSeconds: 10          # Check every 10 seconds
+          timeoutSeconds: 5          # Max wait for response
+          successThreshold: 1        # 1 success = healthy
+          failureThreshold: 3        # Restart after 3 failures
+
+        # ✅ Readiness probe to control traffic routing
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10    # Check sooner than liveness
+          periodSeconds: 5           # Check frequently
+          timeoutSeconds: 3
+          successThreshold: 1        # 1 success = ready
+          failureThreshold: 2        # 2 failures = not ready
+
+        # ✅ Environment variables for configuration
+        env:
+        - name: LOG_LEVEL
+          value: "info"
+        - name: PORT
+          value: "8080"
+        - name: DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: api-config
+              key: db_host
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: api-secrets
+              key: db_password
+
+        # ✅ Mounts for configuration and data
+        volumeMounts:
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+
+        # ✅ Security context for container
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+
+      # ✅ Pod-level volumes
+      volumes:
+      - name: config
+        configMap:
+          name: api-config
+          defaultMode: 0444
+      - name: tmp
+        emptyDir: {}
+
+      # ✅ Pod disruption budget (for graceful scaling)
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - api-server
+              topologyKey: kubernetes.io/hostname
+
+---
+# Service Account with minimal permissions
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: api-server-minimal
+  namespace: production
+
+---
+# Role with minimal required permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: api-server-minimal
+  namespace: production
+rules:
+# Read ConfigMaps (for configuration)
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "watch", "list"]
+  resourceNames: ["api-config"]
+
+# Read Secrets (for credentials)
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get"]
+  resourceNames: ["api-secrets"]
+
+---
+# Role Binding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: api-server-minimal
+  namespace: production
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: api-server-minimal
+subjects:
+- kind: ServiceAccount
+  name: api-server-minimal
+  namespace: production
+
+---
+# ConfigMap for application configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-config
+  namespace: production
+data:
+  db_host: "postgres.database.svc.cluster.local"
+  api_port: "8080"
+
+---
+# HorizontalPodAutoscaler for traffic-based scaling
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-server-hpa
+  namespace: production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-server
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+---
+# PodDisruptionBudget for graceful drain
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: api-server-pdb
+  namespace: production
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: api-server
+
+---
+# NetworkPolicy to restrict traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: api-server-netpol
+  namespace: production
+spec:
+  podSelector:
+    matchLabels:
+      app: api-server
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress
+    - podSelector:
+        matchLabels:
+          app: web-server
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 5432  # Database
+    - protocol: TCP
+      port: 53    # DNS
+    - protocol: UDP
+      port: 53    # DNS
