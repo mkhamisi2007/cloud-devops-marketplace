@@ -1,0 +1,77 @@
+{
+  "hooks": [
+    {
+      "id": "commit-credential-blocker",
+      "name": "Credential Blocker",
+      "description": "Blocks commits containing hardcoded AWS credentials, passwords, API keys, or private keys",
+      "event": "pre-commit",
+      "action": "block",
+      "enabled": true,
+      "rules": [
+        {
+          "pattern": "AKIA[0-9A-Z]{16}",
+          "type": "regex",
+          "description": "AWS Access Key ID (format: AKIA + 16 alphanumerics)",
+          "severity": "critical",
+          "message": "AWS Access Key detected"
+        },
+        {
+          "pattern": "aws_secret_access_key\\s*=\\s*[\"']",
+          "type": "regex",
+          "description": "AWS Secret Access Key assignment",
+          "severity": "critical",
+          "message": "AWS Secret Key assignment detected"
+        },
+        {
+          "pattern": "aws_access_key_id\\s*=\\s*[\"'][^\"']*[\"']",
+          "type": "regex",
+          "description": "AWS Access Key ID assignment",
+          "severity": "critical",
+          "message": "AWS Access Key assignment detected"
+        },
+        {
+          "pattern": "password\\s*=\\s*[\"'][^\"']*[\"']",
+          "type": "regex",
+          "description": "Hardcoded password assignment",
+          "severity": "critical",
+          "message": "Hardcoded password detected"
+        },
+        {
+          "pattern": "-----BEGIN (RSA |OPENSSH |EC |PRIVATE )?KEY",
+          "type": "regex",
+          "description": "PEM format private key",
+          "severity": "critical",
+          "message": "Private key detected"
+        },
+        {
+          "pattern": "api_key\\s*=\\s*[\"'][^\"']*[\"']",
+          "type": "regex",
+          "description": "API key assignment",
+          "severity": "high",
+          "message": "API key detected"
+        },
+        {
+          "pattern": "token\\s*=\\s*[\"'][^\"']*[\"']",
+          "type": "regex",
+          "description": "Token assignment",
+          "severity": "high",
+          "message": "Token detected"
+        },
+        {
+          "pattern": "secret\\s*=\\s*[\"'][^\"']*[\"']",
+          "type": "regex",
+          "description": "Secret value assignment",
+          "severity": "high",
+          "message": "Secret value detected"
+        }
+      ],
+      "scopes": [
+        "*.tf"
+      ],
+      "error_message_template": "[terraform-standards] ❌ Credentials detected in staged files\n\nFile: {file}, Line {line}:\n  {content}\n\nIssue: {message}\n\nRecovery:\n  1. Remove the hardcoded credential from {file}\n  2. Use one of these alternatives instead:\n     - AWS provider variable: var.aws_secret\n     - Environment variable: export AWS_SECRET_ACCESS_KEY=...\n     - AWS credentials file: ~/.aws/credentials\n     - AssumeRole: Use IAM role with credentials provider\n     - AWS Secrets Manager: Use aws_secretsmanager_secret resource\n  3. Stage the corrected file: git add {file}\n  4. Retry commit: git commit -m \"...\"\n\nReference: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html",
+      "success_message": "[terraform-standards] ✅ No credentials detected. Commit allowed.",
+      "override_command": "git commit --no-verify",
+      "override_warning": "WARNING: Using --no-verify bypasses security checks. Only use this if the detected credential is a false positive."
+    }
+  ]
+}
